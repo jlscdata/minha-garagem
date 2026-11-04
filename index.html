@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minha Garagem</title>
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Garagem">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --bg:#f3f5f4; --card:#ffffff; --text:#16201d; --muted:#5f6d68; --line:#e2e7e5;
+  --accent:#0f766e; --accent-ink:#ffffff; --accent-soft:#d9efec;
+  --danger:#c0392b; --danger-soft:#fbe4e1; --warn:#a15c00; --warn-soft:#fdf0d9;
+  --ok:#1e7a3c; --ok-soft:#dff3e5; --shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+  --radius:16px; --nav-h:64px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1413; --card:#18201e; --text:#e8eeec; --muted:#9aa8a3; --line:#27312e;
+    --accent:#2bb3a3; --accent-ink:#04201d; --accent-soft:#16352f;
+    --danger:#ff7b6b; --danger-soft:#3a1d1a; --warn:#f0b35a; --warn-soft:#352a17;
+    --ok:#6fd38f; --ok-soft:#173022; --shadow:none;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{max-width:640px;margin:0 auto;min-height:100vh;padding-bottom:calc(var(--nav-h) + 24px + env(safe-area-inset-bottom))}
+
+/* header */
+header.top{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(10px + env(safe-area-inset-top)) 16px 6px}
+.top-row{display:flex;align-items:center;gap:10px}
+.top-row h1{font-size:22px;margin:0;flex:1;letter-spacing:-.01em}
+.icon-btn{border:0;background:var(--card);width:42px;height:42px;border-radius:12px;display:grid;place-items:center;box-shadow:var(--shadow);cursor:pointer}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center;font-size:15px}
+.chip svg.i{width:18px;height:18px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+main{padding:4px 16px}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 4px 8px;font-weight:600}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px}
+.muted{color:var(--muted)} .small{font-size:13.5px}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.ellip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* list items */
+.item{display:flex;gap:12px;align-items:center;padding:13px 16px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-bottom:8px;cursor:pointer;width:100%;text-align:left;border:0}
+.item .t{font-weight:600}
+.item .r{text-align:right;flex:none}
+.badge-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.badge-ico.danger{background:var(--danger-soft);color:var(--danger)}
+.badge-ico.warn{background:var(--warn-soft);color:var(--warn)}
+.badge-ico.ok{background:var(--ok-soft);color:var(--ok)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--muted)}
+.pill.danger{background:var(--danger-soft);color:var(--danger)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+
+/* vehicle card */
+.veh-head{display:flex;gap:12px;align-items:center}
+.veh-head .name{font-size:18px;font-weight:700}
+.km-big{font-size:28px;font-weight:700;letter-spacing:-.02em;margin:10px 0 2px;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{background:var(--bg);border-radius:12px;padding:8px 10px}
+.stat b{display:block;font-size:16px;font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:600;cursor:pointer;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
+.btn svg.i{width:18px;height:18px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{background:var(--danger-soft);color:var(--danger)}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.block{width:100%}
+.btn.sm{min-height:36px;padding:7px 11px;font-size:14px}
+
+.seg{display:flex;background:var(--line);border-radius:12px;padding:3px;margin:6px 0 12px}
+.seg button{flex:1;border:0;background:transparent;padding:9px;border-radius:10px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+
+.progress{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}
+.progress span{display:block;height:100%;background:var(--accent);border-radius:6px}
+.progress.warn span{background:var(--warn)} .progress.danger span{background:var(--danger)}
+
+.empty{text-align:center;padding:28px 18px;color:var(--muted)}
+.empty .btn{margin-top:12px}
+
+/* bars */
+.bar-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.bar-row .lbl{width:110px;font-size:14px;flex:none}
+.bar-row .track{flex:1;height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar-row .track span{display:block;height:100%;background:var(--accent);border-radius:6px}
+.bar-row .val{width:96px;text-align:right;font-size:14px;font-variant-numeric:tabular-nums;flex:none}
+.months{display:flex;align-items:flex-end;gap:4px;height:130px;margin-top:10px}
+.months div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.months i{display:block;width:100%;background:var(--accent);border-radius:5px 5px 2px 2px;min-height:2px}
+.months small{font-size:11px;color:var(--muted)}
+.total{font-size:30px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* bottom nav */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav.bottom .wrap{max-width:640px;margin:0 auto;display:flex;height:var(--nav-h)}
+nav.bottom button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;color:var(--muted);cursor:pointer;position:relative}
+nav.bottom button.on{color:var(--accent);font-weight:600}
+nav.bottom .dot{position:absolute;top:8px;left:calc(50% + 6px);background:var(--danger);color:#fff;font-size:10px;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px;font-weight:700}
+.fab{position:fixed;z-index:31;right:max(18px,calc(50% - 302px));bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
+  width:58px;height:58px;border-radius:18px;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(15,118,110,.35);cursor:pointer}
+.fab svg.i{width:28px;height:28px}
+
+/* sheet */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
+.sheet{background:var(--card);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;
+  padding:8px 18px calc(18px + env(safe-area-inset-bottom));animation:up .2s ease-out}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+.sheet h3{margin:0 0 14px;font-size:19px}
+@keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.field{display:block;margin-bottom:12px}
+.field>span{display:block;font-size:13.5px;color:var(--muted);margin:0 0 5px 2px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;font-size:16px;min-height:48px;outline:none;appearance:none;-webkit-appearance:none}
+.field select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 21px,calc(100% - 13px) 21px;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+.field textarea{min-height:72px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field.check{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer}
+.field.check input{width:22px;height:22px;min-height:0;accent-color:var(--accent);appearance:auto;-webkit-appearance:auto;margin:0}
+.field.check span{margin:0;color:var(--text);font-size:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.hint{font-size:13px;color:var(--muted);margin:-6px 2px 12px}
+.sheet-actions{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+.sheet-actions .btn{flex:1}
+.menu-list .item{box-shadow:none;border:1px solid var(--line)}
+
+.banner{margin:0 16px 4px;padding:10px 12px;border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:13.5px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 90px + env(safe-area-inset-bottom));z-index:60;
+  background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14.5px;max-width:90vw;animation:fade .2s}
+
+/* login */
+.login{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
+.login .box{width:100%;max-width:380px}
+.logo{width:64px;height:64px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;margin-bottom:14px}
+.logo svg.i{width:34px;height:34px}
+.err{color:var(--danger);font-size:14px;min-height:20px;margin-bottom:6px}
+.loading{position:fixed;inset:0;display:grid;place-items:center;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="loading" id="loading">Carregando…</div>
+<div class="app" id="app" hidden>
+  <header class="top">
+    <div class="top-row">
+      <h1 id="title">Minha Garagem</h1>
+      <button class="icon-btn" data-act="tab" data-tab="settings" aria-label="Configurações" id="btn-settings"></button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </header>
+  <div id="banner"></div>
+  <main id="view"></main>
+</div>
+<button class="fab" id="fab" aria-label="Adicionar" hidden></button>
+<nav class="bottom" id="nav" hidden><div class="wrap" id="nav-wrap"></div></nav>
+<div id="login" class="login" hidden>
+  <form class="box" id="login-form" autocomplete="on">
+    <div class="logo" id="login-logo"></div>
+    <h2 style="margin:0 0 4px">Minha Garagem</h2>
+    <p class="muted" style="margin:0 0 20px">Manutenção, documentos e custos dos seus veículos.</p>
+    <label class="field"><span>E-mail</span><input type="email" name="email" autocomplete="username" required></label>
+    <label class="field"><span>Senha</span><input type="password" name="senha" autocomplete="current-password" required></label>
+    <div class="err" id="login-err"></div>
+    <button class="btn primary block" type="submit">Entrar</button>
+    <button class="btn ghost block" type="button" id="btn-reset" style="margin-top:6px">Esqueci minha senha</button>
+  </form>
+</div>
+<script type="module" src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
