@@ -171,7 +171,7 @@ function doRender() {
   const alerts = computeAlerts();
   const nDanger = alerts.filter((a) => a.sev === 2).length || alerts.length;
   $('#nav-wrap').innerHTML = TABS.map(([k, l, i]) => `<button data-act="tab" data-tab="${k}" class="${ui.tab === k ? 'on' : ''}">${ico(i)}<span>${l}</span>${k === 'home' && alerts.length ? `<em class="dot">${nDanger}</em>` : ''}</button>`).join('');
-  const titles = { home: 'Minha Garagem', maint: 'Manutenção', docs: 'Vencimentos', fuel: 'Combustível', costs: 'Custos', settings: 'Configurações' };
+  const titles = { home: 'JL Garage', maint: 'Manutenção', docs: 'Vencimentos', fuel: 'Combustível', costs: 'Custos', settings: 'Configurações' };
   $('#title').textContent = titles[ui.tab];
   const showChips = ui.tab !== 'settings' && data.vehicles.length > 1;
   $('#chips').hidden = !showChips;
