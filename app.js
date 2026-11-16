@@ -21,6 +21,17 @@ const DEFAULT_PLANS = {
     ['Fluido de freio', null, 24], ['Velas', 10000, 12], ['Pastilhas de freio', 10000, null]]
 };
 
+/* Atalhos oficiais RJ (links publicados no portal do IPVA da Sefaz-RJ e no site do Detran-RJ) */
+const RJ_LINKS = [
+  { k: 'grt', icon: 'doc', t: 'Emitir GRT (taxa de licenciamento)', s: 'Site do Bradesco/Detran-RJ · pede o Renavam', url: 'https://www.ib7.bradesco.com.br/ibpfdetranrj/DebitoVeiculoRJGRTLoaderAction.do' },
+  { k: 'ipva', icon: 'doc', t: 'Emitir DARJ do IPVA', s: 'Sefaz-RJ · pede o Renavam', url: 'https://darj-ipva-web.fazenda.rj.gov.br/' },
+  { k: 'ipvapag', icon: 'check', t: 'Consultar pagamentos de IPVA', s: 'Sefaz-RJ', url: 'https://portal-ipva-web.fazenda.rj.gov.br/ipva-web-externo/#/consulta-pagamentos' },
+  { k: 'multas', icon: 'alert', t: 'Multas e nada consta', s: 'Detran-RJ', url: 'https://www.detran.rj.gov.br/infracoes/principais-servicos-infracoes/nada-consta.html' },
+  { k: 'crlv', icon: 'check', t: 'Baixar CRLV-e (Detran RJ Digital)', s: 'Login gov.br · disponível após pagar IPVA, GRT e multas', url: 'https://servicos.detran.rj.gov.br/logincidadao/acesso/login' },
+  { k: 'info', icon: 'cal', t: 'Licenciamento: prazos e regras', s: 'Página oficial do Detran-RJ', url: 'https://www.detran.rj.gov.br/todos-os-servicos/servicos-drv/licenciamento-anual.html' }
+];
+const rjLink = (k) => RJ_LINKS.find((l) => l.k === k);
+
 /* ================= Ícones ================= */
 const P = {
   home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
@@ -205,6 +216,7 @@ function viewHome() {
         <button class="btn sm" data-act="km" data-id="${v.id}">${ico('gauge')} Atualizar km</button>
         <button class="btn sm" data-act="new-maint" data-vid="${v.id}">${ico('tool')} Manutenção</button>
         <button class="btn sm" data-act="new-fuel" data-vid="${v.id}">${ico('fuel')} Abastecer</button>
+        <button class="btn sm" data-act="rj" data-id="${v.id}">${ico('doc')} Detran / IPVA</button>
       </div></div>`;
   }
   return h;
@@ -254,10 +266,42 @@ function viewDocs() {
         <div class="small muted ellip">${ui.veh === 'all' ? esc(vehName(d.vid)) + ' · ' : ''}${pend ? 'vence ' + fdate(d.vencimento) : 'pago em ' + fdate(d.dataPagamento || d.vencimento)}</div>
         <div style="margin-top:4px"><span class="pill ${s.st}">${esc(s.label)}</span></div></div>
         <div class="r"><b>${d.valor ? money(d.valor) : ''}</b></div></div>
-      ${pend ? `<div class="actions"><button class="btn sm" data-act="pay" data-id="${d.id}">${ico('check')} Marcar como pago</button>${d.vencimento ? `<button class="btn sm ghost" data-act="ics" data-id="${d.id}">${ico('cal')} Agenda</button>` : ''}</div>` : ''}</div>`;
+      ${pend ? `<div class="actions"><button class="btn sm" data-act="pay" data-id="${d.id}">${ico('check')} Marcar como pago</button>${docLinkBtn(d)}${d.vencimento ? `<button class="btn sm ghost" data-act="ics" data-id="${d.id}">${ico('cal')} Agenda</button>` : ''}</div>` : ''}</div>`;
   }).join('');
   return h;
 }
+
+function linkAttrs(l, vid) {
+  const ren = vehById(vid)?.renavam || '';
+  return `href="${l.url}" target="_blank" rel="noopener noreferrer" data-copy="${esc(ren)}"`;
+}
+function docLinkBtn(d) {
+  const k = /^licenciamento/i.test(d.tipo || '') ? 'grt' : /^ipva/i.test(d.tipo || '') ? 'ipva' : null;
+  if (!k) return '';
+  return `<a class="btn sm" ${linkAttrs(rjLink(k), d.vid)}>${ico('doc')} ${k === 'grt' ? 'Emitir GRT' : 'Emitir DARJ'}</a>`;
+}
+function openRJ(vid) {
+  const v = vehById(vid); if (!v) return;
+  const ren = v.renavam || '';
+  openSheet(`<h3>Detran-RJ e IPVA · ${esc(v.nome)}</h3>
+    <div class="stats" style="margin:0 0 12px">
+      <button class="stat" style="border:0;text-align:left;cursor:pointer" data-act="copy" data-val="${esc(ren)}"><span class="small muted">Renavam · toque p/ copiar</span><b>${ren ? esc(ren) : '—'}</b></button>
+      <button class="stat" style="border:0;text-align:left;cursor:pointer" data-act="copy" data-val="${esc(v.placa || '')}"><span class="small muted">Placa · toque p/ copiar</span><b>${v.placa ? esc(v.placa) : '—'}</b></button>
+    </div>
+    ${ren ? '<p class="hint" style="margin:0 2px 12px">Ao abrir um atalho, o Renavam é copiado. No site, é só colar.</p>' : `<p class="hint" style="margin:0 2px 12px;color:var(--warn)">Cadastre o Renavam deste veículo (Configurações > Veículos) para copiar automaticamente.</p>`}
+    <div class="menu-list">${RJ_LINKS.map((l) => `<a class="item" ${linkAttrs(l, vid)} style="text-decoration:none;color:inherit"><div class="badge-ico">${ico(l.icon)}</div><div class="grow"><div class="t">${esc(l.t)}</div><div class="small muted">${esc(l.s)}</div></div></a>`).join('')}</div>
+    <p class="small muted" style="margin:8px 2px 0">Sites oficiais do Detran-RJ e da Sefaz-RJ. Os sites podem pedir captcha.</p>`);
+}
+function copyText(val, msg) {
+  if (!val) return false;
+  try { navigator.clipboard?.writeText(val).catch(() => { }); } catch { }
+  if (msg) toast(msg);
+  return true;
+}
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-copy]'); if (!a) return;
+  if (!copyText(a.dataset.copy, 'Renavam copiado. Cole no site.')) toast('Renavam não cadastrado neste veículo');
+});
 
 function viewFuel() {
   const list = data.fuel.filter(inFilter).sort((a, b) => (b.data || '').localeCompare(a.data || '') || (b.km || 0) - (a.km || 0));
@@ -315,8 +359,15 @@ function viewSettings() {
   h += `</div><button class="btn block" data-act="new-veh">${ico('plus')} Adicionar veículo</button>`;
   h += `<h2 class="sec">Backup</h2><div class="card"><p class="small muted" style="margin-top:0">Baixe uma cópia de todos os seus dados (arquivo .json). Recomendado de tempos em tempos.</p>
     <div class="actions"><button class="btn" data-act="export">Exportar backup</button><button class="btn ghost" data-act="import">Importar backup</button></div></div>`;
+  const lockOn = lockActive();
+  h += `<h2 class="sec">Segurança</h2><div class="card">
+    <p class="small muted" style="margin-top:0">${backend.demo ? 'No modo demonstração não há login.' : 'Você continua conectado neste aparelho até tocar em <b>Sair</b>.'}</p>
+    ${!window.PublicKeyCredential ? '<p class="small muted" style="margin:0">Este navegador não suporta Face ID / biometria.</p>'
+      : lockOn ? `<div class="row" style="margin-bottom:10px"><div class="badge-ico ok">${ico('check')}</div><div class="grow"><b>Face ID / biometria ativado</b><div class="small muted">O app pede desbloqueio ao abrir e após 1 min em segundo plano.</div></div></div>
+        <button class="btn danger block" data-act="lock-off">Desativar Face ID</button>`
+      : `<button class="btn primary block" data-act="lock-on">Ativar Face ID / biometria</button><p class="small muted" style="margin:8px 0 0">Ao abrir o app, ele pedirá Face ID (ou digital) em vez de mostrar seus dados direto.</p>`}</div>`;
   h += `<h2 class="sec">Conta</h2><div class="card">${backend.demo ? '<p class="small muted" style="margin-top:0">Modo demonstração (sem login). Os dados estão só neste navegador.</p><button class="btn danger block" data-act="reset-demo">Apagar dados de demonstração</button>' : `<p class="small muted" style="margin-top:0">Conectado como <b>${esc(backend.email || '')}</b></p><button class="btn danger block" data-act="logout">Sair</button>`}</div>
-    <p class="small muted" style="text-align:center;margin:20px 0">Minha Garagem · v1.0</p>`;
+    <p class="small muted" style="text-align:center;margin:20px 0">Minha Garagem · v1.2</p>`;
   return h;
 }
 
@@ -580,8 +631,12 @@ document.addEventListener('click', async (e) => {
     case 'new-fuel': formFuel(el.dataset.vid ? { vid: el.dataset.vid } : {}); break;
     case 'edit-fuel': formFuel(find('fuel')); break;
     case 'suggest': suggestPlans(id); break;
+    case 'rj': openRJ(id); break;
+    case 'copy': if (!copyText(el.dataset.val, 'Copiado')) toast('Não cadastrado'); break;
     case 'export': downloadFile(`minha-garagem-backup-${today()}.json`, JSON.stringify({ app: 'minha-garagem', exportadoEm: new Date().toISOString(), data }, null, 2), 'application/json'); break;
     case 'import': importBackup(); break;
+    case 'lock-on': enableLock(); break;
+    case 'lock-off': if (confirm('Desativar o Face ID neste aparelho?')) { setLockCfg(null); render(); toast('Face ID desativado'); } break;
     case 'logout': if (confirm('Sair da conta?')) backend.signOut(); break;
     case 'reset-demo': if (confirm('Apagar todos os dados de demonstração?')) { try { localStorage.removeItem(DEMO_KEY); } catch { } location.reload(); } break;
   }
@@ -594,6 +649,65 @@ $('#fab').addEventListener('click', () => {
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
+/* ================= Bloqueio com Face ID / biometria (WebAuthn) ================= */
+// A credencial fica no chip seguro do aparelho; aqui guardamos só o ID dela.
+const LOCK_KEY = 'minha-garagem-lock';
+let locked = false, hiddenAt = 0, justLoggedIn = false, unlockCtrl = null;
+const rand = (n) => crypto.getRandomValues(new Uint8Array(n));
+const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+function lockCfg() { try { return JSON.parse(localStorage.getItem(LOCK_KEY) || 'null'); } catch { return null; } }
+function setLockCfg(v) { try { v ? localStorage.setItem(LOCK_KEY, JSON.stringify(v)) : localStorage.removeItem(LOCK_KEY); } catch { } }
+const currentUid = () => backend?.demo ? 'demo' : backend?.uid || null;
+function lockActive() { const c = lockCfg(); return !!(c && c.credId && c.uid && c.uid === currentUid()); }
+async function enableLock() {
+  let ok = false;
+  try { ok = !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch { }
+  if (!ok) { toast('Face ID / biometria não disponível neste aparelho'); return; }
+  try {
+    const name = backend.email || 'Minha Garagem';
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: rand(32), rp: { name: 'Minha Garagem' },
+      user: { id: rand(16), name, displayName: name },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' },
+      attestation: 'none', timeout: 60000 } });
+    setLockCfg({ uid: currentUid(), credId: b64(cred.rawId), criadoEm: Date.now() });
+    render(); toast('Face ID ativado neste aparelho');
+  } catch (e) { toast(e.name === 'NotAllowedError' ? 'Cancelado' : 'Não foi possível ativar: ' + (e.name || e.message)); }
+}
+async function tryUnlock(auto) {
+  const c = lockCfg(); if (!c) { hideLock(); return; }
+  if (unlockCtrl) unlockCtrl.abort(); // cancela tentativa anterior ainda pendente
+  const ctrl = unlockCtrl = new AbortController();
+  if (!auto) await new Promise((r) => setTimeout(r, 50));
+  try {
+    const a = await navigator.credentials.get({ signal: ctrl.signal, publicKey: {
+      challenge: rand(32), userVerification: 'required', timeout: 60000,
+      allowCredentials: [{ type: 'public-key', id: unb64(c.credId), transports: ['internal', 'hybrid'] }] } });
+    if (a) hideLock();
+  } catch (e) {
+    if (ctrl.signal.aborted) return;
+    if (!auto) toast(e.name === 'NotAllowedError' ? 'Não confirmado. Toque para tentar de novo.' : 'Erro: ' + e.name);
+  }
+}
+function showLock() {
+  locked = true; closeSheet();
+  $('#lock-msg').textContent = backend?.email ? `Conectado como ${backend.email}` : 'App bloqueado';
+  $('#lock').hidden = false;
+  tryUnlock(true); // tenta abrir o Face ID sozinho; se o aparelho exigir toque, fica o botão
+}
+function hideLock() { locked = false; $('#lock').hidden = true; if (unlockCtrl) { unlockCtrl.abort(); unlockCtrl = null; } }
+$('#btn-unlock').addEventListener('click', () => tryUnlock(false));
+$('#btn-lock-pwd').addEventListener('click', async () => {
+  if (backend?.demo) { setLockCfg(null); hideLock(); render(); return; }
+  hideLock(); await backend.signOut(); // volta para a tela de e-mail e senha
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (!locked && hiddenAt && Date.now() - hiddenAt > 60000 && lockActive()) showLock();
+});
+
 /* ================= Backends ================= */
 const DEMO_KEY = 'minha-garagem-demo';
 function seedDemo() {
@@ -601,7 +715,7 @@ function seedDemo() {
   const back = (days) => toISO(new Date(parseD(t).getTime() - days * 86400000));
   const ahead = (days) => toISO(new Date(parseD(t).getTime() + days * 86400000));
   data.vehicles = [
-    { id: 'v1', nome: 'Carro 1', tipo: 'carro', marca: 'Toyota', modelo: 'Corolla', ano: 2020, placa: 'ABC1D23', km: 61200, combustivel: 'Flex', ordem: 0 },
+    { id: 'v1', nome: 'Carro 1', tipo: 'carro', marca: 'Toyota', modelo: 'Corolla', ano: 2020, placa: 'ABC1D23', renavam: '01234567890', km: 61200, combustivel: 'Flex', ordem: 0 },
     { id: 'v2', nome: 'Carro 2', tipo: 'carro', marca: 'Fiat', modelo: 'Argo', ano: 2022, placa: 'XYZ4E56', km: 30500, combustivel: 'Flex', ordem: 1 },
     { id: 'v3', nome: 'Moto', tipo: 'moto', marca: 'Honda', modelo: 'CG 160', ano: 2021, placa: 'MOT0A12', km: 18900, combustivel: 'Gasolina', ordem: 2 }];
   data.maint = [
@@ -642,7 +756,10 @@ async function firebaseBackend() {
   const B = 'https://www.gstatic.com/firebasejs/10.12.2/';
   const [{ initializeApp }, A, F] = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-auth.js'), import(B + 'firebase-firestore.js')]);
   const app = initializeApp(firebaseConfig);
-  const auth = A.getAuth(app);
+  // Sessão salva no aparelho: continua conectado até tocar em "Sair"
+  let auth;
+  try { auth = A.initializeAuth(app, { persistence: [A.indexedDBLocalPersistence, A.browserLocalPersistence] }); }
+  catch { auth = A.getAuth(app); }
   let db;
   try { db = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
   catch { db = F.getFirestore(app); }
@@ -661,8 +778,9 @@ async function firebaseBackend() {
     unsubs.forEach((u) => u()); unsubs = [];
     COLS.forEach((c) => (data[c] = []));
     $('#loading').hidden = true;
-    if (!user) { uid = null; showApp(false); return; }
-    uid = user.uid; be.email = user.email; showApp(true);
+    if (!user) { uid = null; be.uid = null; hideLock(); showApp(false); return; }
+    uid = user.uid; be.uid = uid; be.email = user.email; showApp(true);
+    if (justLoggedIn) justLoggedIn = false; else if (lockActive()) showLock();
     for (const c of COLS) {
       unsubs.push(F.onSnapshot(F.collection(db, 'users', uid, c), (snap) => {
         data[c] = snap.docs.map((d) => ({ ...d.data(), id: d.id })); render();
@@ -681,18 +799,19 @@ function showApp(on) {
 $('#btn-settings').innerHTML = ico('gear');
 $('#fab').innerHTML = ico('plus');
 $('#login-logo').innerHTML = ico('carro');
+$('#lock-logo').innerHTML = ico('carro');
 const configured = firebaseConfig && firebaseConfig.apiKey && !/COLE/i.test(firebaseConfig.apiKey);
 (async () => {
   if (!configured) {
-    backend = demoBackend(); $('#loading').hidden = true; showApp(true); render(); return;
+    backend = demoBackend(); $('#loading').hidden = true; showApp(true); render(); if (lockActive()) showLock(); return;
   }
   try { backend = await firebaseBackend(); }
   catch (err) { $('#loading').textContent = 'Não foi possível carregar o Firebase. Verifique a conexão e o config.js.'; console.error(err); return; }
   const ERR = { 'auth/invalid-credential': 'E-mail ou senha incorretos.', 'auth/invalid-email': 'E-mail inválido.', 'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.', 'auth/network-request-failed': 'Sem conexão com a internet.' };
   $('#login-form').onsubmit = async (e) => {
     e.preventDefault(); const f = e.target; $('#login-err').textContent = '';
-    try { await backend.login(f.email.value.trim(), f.senha.value); }
-    catch (err) { $('#login-err').textContent = ERR[err.code] || 'Erro: ' + err.code; }
+    try { justLoggedIn = true; await backend.login(f.email.value.trim(), f.senha.value); }
+    catch (err) { justLoggedIn = false; $('#login-err').textContent = ERR[err.code] || 'Erro: ' + err.code; }
   };
   $('#btn-reset').onclick = async () => {
     const email = $('#login-form').email.value.trim();

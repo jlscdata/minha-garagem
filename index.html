@@ -81,6 +81,7 @@ h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--
 .btn.danger{background:var(--danger-soft);color:var(--danger)}
 .btn.ghost{background:transparent;color:var(--muted)}
 .btn.block{width:100%}
+a.btn{text-decoration:none}
 .btn.sm{min-height:36px;padding:7px 11px;font-size:14px}
 
 .seg{display:flex;background:var(--line);border-radius:12px;padding:3px;margin:6px 0 12px}
@@ -182,6 +183,15 @@ nav.bottom .dot{position:absolute;top:8px;left:calc(50% + 6px);background:var(--
     <button class="btn primary block" type="submit">Entrar</button>
     <button class="btn ghost block" type="button" id="btn-reset" style="margin-top:6px">Esqueci minha senha</button>
   </form>
+</div>
+<div id="lock" class="login" hidden style="z-index:80">
+  <div class="box" style="text-align:center">
+    <div class="logo" id="lock-logo" style="margin:0 auto 14px"></div>
+    <h2 style="margin:0 0 4px">Minha Garagem</h2>
+    <p class="muted" id="lock-msg" style="margin:0 0 24px">App bloqueado</p>
+    <button class="btn primary block" type="button" id="btn-unlock">Desbloquear com Face ID</button>
+    <button class="btn ghost block" type="button" id="btn-lock-pwd" style="margin-top:6px">Entrar com senha</button>
+  </div>
 </div>
 <script type="module" src="app.js"></script>
 <script>
