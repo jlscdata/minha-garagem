@@ -1,5 +1,5 @@
 // Service worker simples: tenta a rede primeiro e usa o cache quando estiver sem internet.
-const CACHE = 'minha-garagem-v4';
+const CACHE = 'minha-garagem-v5';
 const SHELL = ['./', './index.html', './app.js', './config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

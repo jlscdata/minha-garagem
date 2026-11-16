@@ -359,6 +359,9 @@ function viewSettings() {
   h += `</div><button class="btn block" data-act="new-veh">${ico('plus')} Adicionar veículo</button>`;
   h += `<h2 class="sec">Backup</h2><div class="card"><p class="small muted" style="margin-top:0">Baixe uma cópia de todos os seus dados (arquivo .json). Recomendado de tempos em tempos.</p>
     <div class="actions"><button class="btn" data-act="export">Exportar backup</button><button class="btn ghost" data-act="import">Importar backup</button></div></div>`;
+  const cur = currentTheme();
+  h += `<h2 class="sec">Aparência</h2><div class="card"><div class="themes">${THEMES.map(([k, n, a, b]) => `<button class="theme-opt ${cur === k ? 'on' : ''}" data-act="theme" data-v="${k}"><i style="background:${k === 'classic' ? 'linear-gradient(90deg,#f3f5f4 50%,#0f766e 50%)' : `linear-gradient(90deg,#07070c 30%,${a} 30% 70%,${b} 70%)`}"></i>${n}</button>`).join('')}</div>
+    <p class="small muted" style="margin:10px 0 0">O tema fica salvo neste aparelho.</p></div>`;
   const lockOn = lockActive();
   h += `<h2 class="sec">Segurança</h2><div class="card">
     <p class="small muted" style="margin-top:0">${backend.demo ? 'No modo demonstração não há login.' : 'Você continua conectado neste aparelho até tocar em <b>Sair</b>.'}</p>
@@ -367,8 +370,18 @@ function viewSettings() {
         <button class="btn danger block" data-act="lock-off">Desativar Face ID</button>`
       : `<button class="btn primary block" data-act="lock-on">Ativar Face ID / biometria</button><p class="small muted" style="margin:8px 0 0">Ao abrir o app, ele pedirá Face ID (ou digital) em vez de mostrar seus dados direto.</p>`}</div>`;
   h += `<h2 class="sec">Conta</h2><div class="card">${backend.demo ? '<p class="small muted" style="margin-top:0">Modo demonstração (sem login). Os dados estão só neste navegador.</p><button class="btn danger block" data-act="reset-demo">Apagar dados de demonstração</button>' : `<p class="small muted" style="margin-top:0">Conectado como <b>${esc(backend.email || '')}</b></p><button class="btn danger block" data-act="logout">Sair</button>`}</div>
-    <p class="small muted" style="text-align:center;margin:20px 0">JL Garage · v1.3</p>`;
+    <p class="small muted" style="text-align:center;margin:20px 0">JL Garage · v1.4</p>`;
   return h;
+}
+
+/* ================= Temas ================= */
+const THEMES = [['cyber', 'Cyber', '#00f0ff', '#ff2bd6'], ['gx', 'GX Red', '#ff285a', '#ff8a28'], ['night', 'Night City', '#fcee0a', '#00f0ff'],
+  ['toxic', 'Toxic', '#39ff14', '#00c8ff'], ['violet', 'Synthwave', '#a855f7', '#22d3ee'], ['classic', 'Clássico', '', '']];
+function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'classic'; }
+function applyTheme(t) {
+  if (t === 'classic') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('jlg-theme', t); } catch { }
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'classic' ? '#0f766e' : '#07070c';
 }
 
 /* ================= Formulários ================= */
@@ -632,6 +645,7 @@ document.addEventListener('click', async (e) => {
     case 'edit-fuel': formFuel(find('fuel')); break;
     case 'suggest': suggestPlans(id); break;
     case 'rj': openRJ(id); break;
+    case 'theme': applyTheme(el.dataset.v); render(); break;
     case 'copy': if (!copyText(el.dataset.val, 'Copiado')) toast('Não cadastrado'); break;
     case 'export': downloadFile(`minha-garagem-backup-${today()}.json`, JSON.stringify({ app: 'minha-garagem', exportadoEm: new Date().toISOString(), data }, null, 2), 'application/json'); break;
     case 'import': importBackup(); break;
@@ -797,6 +811,7 @@ function showApp(on) {
 
 /* ================= Inicialização ================= */
 $('#btn-settings').innerHTML = ico('gear');
+{ const m = document.querySelector('meta[name="theme-color"]'); if (m && currentTheme() !== 'classic') m.content = '#07070c'; }
 $('#fab').innerHTML = ico('plus');
 $('#login-logo').innerHTML = ico('carro');
 $('#lock-logo').innerHTML = ico('carro');
