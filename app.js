@@ -47,6 +47,7 @@ const P = {
   check: '<polyline points="20 6 9 17 4 12"/>',
   gauge: '<path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
   cal: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  palette: '<circle cx="13.5" cy="6.5" r="1.2"/><circle cx="17.5" cy="10.5" r="1.2"/><circle cx="8.5" cy="7.5" r="1.2"/><circle cx="6.5" cy="12.5" r="1.2"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6.01 17.46 2 12 2z"/>',
   clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'
 };
 const ico = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ''}</svg>`;
@@ -359,8 +360,7 @@ function viewSettings() {
   h += `</div><button class="btn block" data-act="new-veh">${ico('plus')} Adicionar veículo</button>`;
   h += `<h2 class="sec">Backup</h2><div class="card"><p class="small muted" style="margin-top:0">Baixe uma cópia de todos os seus dados (arquivo .json). Recomendado de tempos em tempos.</p>
     <div class="actions"><button class="btn" data-act="export">Exportar backup</button><button class="btn ghost" data-act="import">Importar backup</button></div></div>`;
-  const cur = currentTheme();
-  h += `<h2 class="sec">Aparência</h2><div class="card"><div class="themes">${THEMES.map(([k, n, a, b]) => `<button class="theme-opt ${cur === k ? 'on' : ''}" data-act="theme" data-v="${k}"><i style="background:${k === 'classic' ? 'linear-gradient(90deg,#f3f5f4 50%,#0f766e 50%)' : `linear-gradient(90deg,#07070c 30%,${a} 30% 70%,${b} 70%)`}"></i>${n}</button>`).join('')}</div>
+  h += `<h2 class="sec">Aparência</h2><div class="card">${themeGrid()}
     <p class="small muted" style="margin:10px 0 0">O tema fica salvo neste aparelho.</p></div>`;
   const lockOn = lockActive();
   h += `<h2 class="sec">Segurança</h2><div class="card">
@@ -370,13 +370,20 @@ function viewSettings() {
         <button class="btn danger block" data-act="lock-off">Desativar Face ID</button>`
       : `<button class="btn primary block" data-act="lock-on">Ativar Face ID / biometria</button><p class="small muted" style="margin:8px 0 0">Ao abrir o app, ele pedirá Face ID (ou digital) em vez de mostrar seus dados direto.</p>`}</div>`;
   h += `<h2 class="sec">Conta</h2><div class="card">${backend.demo ? '<p class="small muted" style="margin-top:0">Modo demonstração (sem login). Os dados estão só neste navegador.</p><button class="btn danger block" data-act="reset-demo">Apagar dados de demonstração</button>' : `<p class="small muted" style="margin-top:0">Conectado como <b>${esc(backend.email || '')}</b></p><button class="btn danger block" data-act="logout">Sair</button>`}</div>
-    <p class="small muted" style="text-align:center;margin:20px 0">JL Garage · v1.4</p>`;
+    <p class="small muted" style="text-align:center;margin:20px 0">JL Garage · v1.5</p>`;
   return h;
 }
 
 /* ================= Temas ================= */
 const THEMES = [['cyber', 'Cyber', '#00f0ff', '#ff2bd6'], ['gx', 'GX Red', '#ff285a', '#ff8a28'], ['night', 'Night City', '#fcee0a', '#00f0ff'],
-  ['toxic', 'Toxic', '#39ff14', '#00c8ff'], ['violet', 'Synthwave', '#a855f7', '#22d3ee'], ['classic', 'Clássico', '', '']];
+  ['toxic', 'Toxic', '#39ff14', '#00c8ff'], ['violet', 'Synthwave', '#a855f7', '#22d3ee'], ['classic', 'Padrão', '', '']];
+function themeGrid() {
+  const cur = currentTheme();
+  return `<div class="themes">${THEMES.map(([k, n, a, b]) => `<button class="theme-opt ${cur === k ? 'on' : ''}" data-act="theme" data-v="${k}"><i style="background:${k === 'classic' ? 'linear-gradient(90deg,#f3f5f4 50%,#0f766e 50%)' : `linear-gradient(90deg,#07070c 30%,${a} 30% 70%,${b} 70%)`}"></i>${n}</button>`).join('')}</div>`;
+}
+function openThemes() {
+  openSheet(`<h3>Escolha o tema</h3><div id="theme-sheet">${themeGrid()}</div><p class="small muted" style="margin:12px 2px 0">5 temas neon e o visual padrão. O tema fica salvo neste aparelho.</p>`);
+}
 function currentTheme() { return document.documentElement.getAttribute('data-theme') || 'classic'; }
 function applyTheme(t) {
   if (t === 'classic') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
@@ -645,7 +652,8 @@ document.addEventListener('click', async (e) => {
     case 'edit-fuel': formFuel(find('fuel')); break;
     case 'suggest': suggestPlans(id); break;
     case 'rj': openRJ(id); break;
-    case 'theme': applyTheme(el.dataset.v); render(); break;
+    case 'theme': applyTheme(el.dataset.v); render(); { const ts = $('#theme-sheet'); if (ts) ts.innerHTML = themeGrid(); } break;
+    case 'themes': openThemes(); break;
     case 'copy': if (!copyText(el.dataset.val, 'Copiado')) toast('Não cadastrado'); break;
     case 'export': downloadFile(`minha-garagem-backup-${today()}.json`, JSON.stringify({ app: 'minha-garagem', exportadoEm: new Date().toISOString(), data }, null, 2), 'application/json'); break;
     case 'import': importBackup(); break;
@@ -811,6 +819,7 @@ function showApp(on) {
 
 /* ================= Inicialização ================= */
 $('#btn-settings').innerHTML = ico('gear');
+$('#btn-theme').innerHTML = ico('palette');
 { const m = document.querySelector('meta[name="theme-color"]'); if (m && currentTheme() !== 'classic') m.content = '#07070c'; }
 $('#fab').innerHTML = ico('plus');
 $('#login-logo').innerHTML = ico('carro');
