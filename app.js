@@ -367,7 +367,7 @@ function viewSettings() {
         <button class="btn danger block" data-act="lock-off">Desativar Face ID</button>`
       : `<button class="btn primary block" data-act="lock-on">Ativar Face ID / biometria</button><p class="small muted" style="margin:8px 0 0">Ao abrir o app, ele pedirá Face ID (ou digital) em vez de mostrar seus dados direto.</p>`}</div>`;
   h += `<h2 class="sec">Conta</h2><div class="card">${backend.demo ? '<p class="small muted" style="margin-top:0">Modo demonstração (sem login). Os dados estão só neste navegador.</p><button class="btn danger block" data-act="reset-demo">Apagar dados de demonstração</button>' : `<p class="small muted" style="margin-top:0">Conectado como <b>${esc(backend.email || '')}</b></p><button class="btn danger block" data-act="logout">Sair</button>`}</div>
-    <p class="small muted" style="text-align:center;margin:20px 0">Minha Garagem · v1.2</p>`;
+    <p class="small muted" style="text-align:center;margin:20px 0">JL Garage · v1.3</p>`;
   return h;
 }
 
@@ -586,7 +586,7 @@ function exportICS(d) {
   const dt = d.vencimento.replace(/-/g, ''); const end = addMonths(d.vencimento, 0); const e2 = toISO(new Date(parseD(end).getTime() + 86400000)).replace(/-/g, '');
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   const sum = `${d.tipo}${d.descricao ? ' ' + d.descricao : ''} - ${vehName(d.vid)}`.replace(/[,;]/g, ' ');
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MinhaGaragem//PT-BR', 'BEGIN:VEVENT', `UID:${d.id}@minhagaragem`, `DTSTAMP:${stamp}`,
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//JLGarage//PT-BR', 'BEGIN:VEVENT', `UID:${d.id}@minhagaragem`, `DTSTAMP:${stamp}`,
     `DTSTART;VALUE=DATE:${dt}`, `DTEND;VALUE=DATE:${e2}`, `SUMMARY:Vence: ${sum}`, `DESCRIPTION:${d.valor ? 'Valor: ' + money(d.valor) : ''}`,
     'BEGIN:VALARM', 'TRIGGER:-P7D', 'ACTION:DISPLAY', `DESCRIPTION:${sum}`, 'END:VALARM',
     'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', `DESCRIPTION:${sum}`, 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
@@ -665,9 +665,9 @@ async function enableLock() {
   try { ok = !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch { }
   if (!ok) { toast('Face ID / biometria não disponível neste aparelho'); return; }
   try {
-    const name = backend.email || 'Minha Garagem';
+    const name = backend.email || 'JL Garage';
     const cred = await navigator.credentials.create({ publicKey: {
-      challenge: rand(32), rp: { name: 'Minha Garagem' },
+      challenge: rand(32), rp: { name: 'JL Garage' },
       user: { id: rand(16), name, displayName: name },
       pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
       authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' },
